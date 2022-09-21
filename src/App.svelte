@@ -13,32 +13,39 @@
   let allBooksNoNums = allBooks.map((x) => x.replace(/[0-9]/g, "").trim());
   let allBooksNNLower = allBooksNoNums.map((x) => x.toLowerCase());
 
-  let scripture = "";
+  let scripture = [];
 
   let book_number = 0;
   let book_name = "";
   let verse = "";
 
+  let query = "";
+
   const parseVerse = (v) => {
-    let v_parts = [].concat(v.match(/[0-9]+/g));
-    if (v_parts.length == 0) {
-      verse = "";
-      return;
-    }
-    if (v_parts.length == 3) {
-      // Support verse stretches soon! :(
-      verse = `${v_parts[0]}:${v_parts[1]}`;
-      return;
-    }
-    if (v_parts.length == 2) {
-      verse = `${v_parts[0]}:${v_parts[1]}`;
-      return;
-    }
-    if (v_parts.length == 1) {
-      verse = `${v_parts[0]}:1`;
-      return;
-    }
+    let v_parts = parseVerseInt(v);
+    return formatVerseInts(v_parts);
   };
+
+  const formatVerseInts = (i) => {
+    if (i.length == 3) return `${i[0]}:${i[1]}-${i[2]}`;
+    if (i.length == 2) return `${i[0]}:${i[1]}`;
+    if (i.length == 1) return `${i[0]}:1`;
+    return "";
+  };
+
+  const parseVerseInt = (v) => {
+    let v_parts = [].concat(v.match(/[0-9]+/g)).map((x) => parseInt(x));
+    if (v_parts.length == 0) return [];
+    if (v_parts.length >= 3) {
+      if (v_parts[2] <= v_parts[1]) return [v_parts[0], v_parts[1]];
+      return [v_parts[0], v_parts[1], v_parts[2]];
+    }
+    if (v_parts.length == 2) return v_parts;
+    if (v_parts.length == 1) return v_parts.concat(1);
+  };
+
+  const buildVerseQuery = (book_number, book_name, verse) =>
+    `${book_number > 0 ? book_number : ""} ${book_name} ${verse}`.trim();
 
   const handleInput = (e) => {
     let text = e.target.value;
@@ -46,7 +53,7 @@
     let text_components = [];
     let numeric_components = [];
 
-    if (all_components.length != 0) {
+    if (text && all_components.length != 0) {
       // Split into numeric and textual components.
 
       for (let x = 0; x < all_components.length; x++) {
@@ -78,34 +85,50 @@
 
       // Detect verses
       if (numeric_components.length == 2) {
-        parseVerse(numeric_components[1]);
+        verse = parseVerse(numeric_components[1]);
       } else if (numeric_components.length == 1) {
-        parseVerse(numeric_components[0]);
+        verse = parseVerse(numeric_components[0]);
       }
 
       // Assemble query string.
-      let query = "";
-      if (book_number) query = query.concat(`${book_number} `);
-      if (book_name) query = query.concat(`${book_name} `);
-      if (verse) query = query.concat(verse);
+      query = buildVerseQuery(book_number, book_name, verse);
 
       // Check for the verse if all the components are in place.
-      if (query && book_name && verse) {
+      if (query) {
         let verse_found = false;
+        let first_query = buildVerseQuery(
+          book_number,
+          book_name,
+          formatVerseInts(parseVerseInt(verse).slice(0, 2))
+        );
+        console.log(`First Query: ${first_query}`);
         for (let x = 0; x < kjv.length; x++) {
-          if (kjv[x].name == query) {
-            scripture = kjv[x].verse;
+          if (kjv[x].name == first_query) {
+            scripture = [kjv[x]];
             verse_found = true;
+
+            // Grab more scripture.
+            let verse_ints = parseVerseInt(verse);
+            console.log(verse_ints);
+            if (verse_ints.length == 3) {
+              console.log(
+                `Collecting from verse ${verse_ints[1]} to ${verse_ints[2]}`
+              );
+            }
+
             break;
           }
         }
-        if (!verse_found) scripture = "";
-        // Trigger build.
+        if (!verse_found) scripture = [];
+      } else {
+        scripture = [];
       }
     } else {
       book_name = "";
       book_number = 0;
       verse = "";
+      query = "";
+      scripture = [];
     }
   };
 </script>
@@ -131,7 +154,13 @@
       {book_name == "" ? "..." : book_name}
       {verse}</small
     >
-    <p><i>{scripture}</i></p>
+    <div>
+      <p>
+        {#each scripture as s}
+          <span>{s.verse}</span>
+        {/each}
+      </p>
+    </div>
   </div>
 </main>
 
@@ -156,7 +185,11 @@
     align-items: center;
   }
   .scripture-search input {
-    padding: 0.5em;
+    padding: 0.5em 2em;
     margin: 1em;
+    margin-bottom: 0;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1rem;
   }
 </style>
