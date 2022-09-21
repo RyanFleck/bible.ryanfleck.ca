@@ -13,10 +13,6 @@
   let allBooksNoNums = allBooks.map((x) => x.replace(/[0-9]/g, "").trim());
   let allBooksNNLower = allBooksNoNums.map((x) => x.toLowerCase());
 
-  // let list = "";
-  // allBooks.forEach((x) => (list = list.concat(`${x}\n`)));
-  // console.log(list);
-
   let scripture = "";
 
   let book_number = 0;
@@ -24,7 +20,6 @@
   let verse = "";
 
   const parseVerse = (v) => {
-    console.log(`Parsing verse ${v}`);
     let v_parts = [].concat(v.match(/[0-9]+/g));
     if (v_parts.length == 0) {
       verse = "";
@@ -88,9 +83,6 @@
         parseVerse(numeric_components[0]);
       }
 
-      console.log(text_components);
-      console.log(numeric_components);
-
       // Assemble query string.
       let query = "";
       if (book_number) query = query.concat(`${book_number} `);
@@ -99,6 +91,15 @@
 
       // Check for the verse if all the components are in place.
       if (query && book_name && verse) {
+        let verse_found = false;
+        for (let x = 0; x < kjv.length; x++) {
+          if (kjv[x].name == query) {
+            scripture = kjv[x].verse;
+            verse_found = true;
+            break;
+          }
+        }
+        if (!verse_found) scripture = "";
       }
     } else {
       book_name = "";
