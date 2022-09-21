@@ -100,6 +100,7 @@
           }
         }
         if (!verse_found) scripture = "";
+        // Trigger build.
       }
     } else {
       book_name = "";
