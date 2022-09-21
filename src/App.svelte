@@ -9,6 +9,10 @@
   allBooks = allBooks.concat(books["New Testament"]);
   allBooks = allBooks.concat(books["Old Testament"]);
 
+  // Lowercase, trim numbers and whitespace.
+  let allBooksNoNums = allBooks.map((x) => x.replace(/[0-9]/g, "").trim());
+  let allBooksNNLower = allBooksNoNums.map((x) => x.toLowerCase());
+
   // let list = "";
   // allBooks.forEach((x) => (list = list.concat(`${x}\n`)));
   // console.log(list);
@@ -24,27 +28,36 @@
     let all_components = [].concat(text.match(/[a-zA-Z]+|[0-9\:\-]+/g));
     let text_components = [];
     let numeric_components = [];
+
     if (all_components.length > 0) {
       // Split into numeric and textual components.
 
       for (let x = 0; x < all_components.length; x++) {
         let content = all_components[x];
-        if (!isNaN(content[0])) {
+        if (content && !isNaN(content[0])) {
           numeric_components.push(content);
         } else {
           text_components.push(content);
         }
       }
 
-      if (!isNaN(text_components[0])) {
-        book_number = parseInt(text_components[0]);
-        text_components = text_components.shift();
-      } else {
-        book_number = 0;
+      // Figure out book name
+      let start_of_name = text_components.join(" ").toLowerCase();
+      console.log(`Start of name: ${start_of_name}`);
+      for (let x = 0; x < allBooksNNLower.length; x++) {
+        if (allBooksNNLower[x].startsWith(start_of_name)) {
+          book_name = allBooksNoNums[x];
+          console.log(book_name);
+          break;
+        }
       }
 
       console.log(text_components);
       console.log(numeric_components);
+    } else {
+      book_name = "";
+      book_number = 0;
+      verse = "";
     }
   };
 </script>
@@ -60,11 +73,17 @@
   >
 
   <div class="scripture-search">
-    <input type="text" name="scripture" on:input={handleInput} />
+    <div>
+      <input type="text" name="scripture" on:input={handleInput} />
+    </div>
+
+    <small
+      >Searching for
+      {book_number == 0 ? "" : book_number}
+      {book_name == "" ? "..." : book_name}
+      {verse}</small
+    >
     <p><i>{scripture}</i></p>
-    <p>Book Number: {book_number}</p>
-    <p>Book Name: {book_name}</p>
-    <p>Verse: {verse}</p>
   </div>
 </main>
 
@@ -88,7 +107,7 @@
     justify-content: center;
     align-items: center;
   }
-  .scripture-search > input {
+  .scripture-search input {
     padding: 0.5em;
     margin: 1em;
   }
