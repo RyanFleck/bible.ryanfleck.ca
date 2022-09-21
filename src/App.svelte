@@ -25,7 +25,24 @@
 
   const parseVerse = (v) => {
     console.log(`Parsing verse ${v}`);
-    verse = v;
+    let v_parts = [].concat(v.match(/[0-9]+/g));
+    if (v_parts.length == 0) {
+      verse = "";
+      return;
+    }
+    if (v_parts.length == 3) {
+      // Support verse stretches soon! :(
+      verse = `${v_parts[0]}:${v_parts[1]}`;
+      return;
+    }
+    if (v_parts.length == 2) {
+      verse = `${v_parts[0]}:${v_parts[1]}`;
+      return;
+    }
+    if (v_parts.length == 1) {
+      verse = `${v_parts[0]}:1`;
+      return;
+    }
   };
 
   const handleInput = (e) => {
@@ -34,7 +51,7 @@
     let text_components = [];
     let numeric_components = [];
 
-    if (all_components.length > 0) {
+    if (all_components.length != 0) {
       // Split into numeric and textual components.
 
       for (let x = 0; x < all_components.length; x++) {
@@ -64,7 +81,7 @@
         book_number = 0;
       }
 
-      // Detect verse
+      // Detect verses
       if (numeric_components.length == 2) {
         parseVerse(numeric_components[1]);
       } else if (numeric_components.length == 1) {
@@ -73,6 +90,16 @@
 
       console.log(text_components);
       console.log(numeric_components);
+
+      // Assemble query string.
+      let query = "";
+      if (book_number) query = query.concat(`${book_number} `);
+      if (book_name) query = query.concat(`${book_name} `);
+      if (verse) query = query.concat(verse);
+
+      // Check for the verse if all the components are in place.
+      if (query && book_name && verse) {
+      }
     } else {
       book_name = "";
       book_number = 0;
