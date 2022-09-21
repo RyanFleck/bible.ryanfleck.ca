@@ -23,6 +23,11 @@
   let book_name = "";
   let verse = "";
 
+  const parseVerse = (v) => {
+    console.log(`Parsing verse ${v}`);
+    verse = v;
+  };
+
   const handleInput = (e) => {
     let text = e.target.value;
     let all_components = [].concat(text.match(/[a-zA-Z]+|[0-9\:\-]+/g));
@@ -43,13 +48,27 @@
 
       // Figure out book name
       let start_of_name = text_components.join(" ").toLowerCase();
-      console.log(`Start of name: ${start_of_name}`);
       for (let x = 0; x < allBooksNNLower.length; x++) {
         if (allBooksNNLower[x].startsWith(start_of_name)) {
           book_name = allBooksNoNums[x];
-          console.log(book_name);
           break;
+        } else if (x == allBooksNNLower.length - 1) {
+          book_name = "";
         }
+      }
+
+      // Detect book number
+      if (numeric_components.length == 2) {
+        book_number = parseInt(numeric_components[0]);
+      } else if (numeric_components.length == 1) {
+        book_number = 0;
+      }
+
+      // Detect verse
+      if (numeric_components.length == 2) {
+        parseVerse(numeric_components[1]);
+      } else if (numeric_components.length == 1) {
+        parseVerse(numeric_components[0]);
       }
 
       console.log(text_components);
