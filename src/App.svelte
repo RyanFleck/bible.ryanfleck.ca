@@ -96,27 +96,47 @@
       // Check for the verse if all the components are in place.
       if (query) {
         let verse_found = false;
+        let verse_ints = parseVerseInt(verse);
         let first_query = buildVerseQuery(
           book_number,
           book_name,
-          formatVerseInts(parseVerseInt(verse).slice(0, 2))
+          formatVerseInts(verse_ints.slice(0, 2))
         );
-        console.log(`First Query: ${first_query}`);
+        console.log(`First Query: ${first_query} ${verse_ints}`);
         for (let x = 0; x < kjv.length; x++) {
           if (kjv[x].name == first_query) {
-            scripture = [kjv[x]];
+            scripture = [
+              {
+                number: verse_ints[1],
+                verse: kjv[x].verse,
+              },
+            ];
             verse_found = true;
 
             // Grab more scripture.
-            let verse_ints = parseVerseInt(verse);
-            console.log(verse_ints);
             if (verse_ints.length == 3) {
               console.log(
                 `Collecting from verse ${verse_ints[1]} to ${verse_ints[2]}`
               );
+              let z = x + 1;
+              for (let y = verse_ints[1] + 1; y <= verse_ints[2]; y++) {
+                let next_query = buildVerseQuery(
+                  book_number,
+                  book_name,
+                  formatVerseInts([verse_ints[0], y])
+                );
+                console.log(`Checking for ${next_query}`);
+                if (kjv[z] && kjv[z].name == next_query) {
+                  scripture.push({
+                    number: y,
+                    verse: kjv[z].verse,
+                  });
+                  z++;
+                } else {
+                  break;
+                }
+              }
             }
-
-            break;
           }
         }
         if (!verse_found) scripture = [];
@@ -157,7 +177,7 @@
     <div>
       <p>
         {#each scripture as s}
-          <span>{s.verse}</span>
+          <span><sup>{s.number}</sup>{s.verse} </span>
         {/each}
       </p>
     </div>
