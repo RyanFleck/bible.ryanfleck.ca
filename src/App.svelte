@@ -174,7 +174,7 @@
       {book_name == "" ? "..." : book_name}
       {verse}</small
     >
-    <div>
+    <div class="scripture-display">
       <p>
         {#each scripture as s}
           <span><sup>{s.number}</sup>{s.verse} </span>
@@ -185,6 +185,10 @@
 </main>
 
 <style>
+  .scripture-display {
+    text-align: left;
+    max-width: 500px;
+  }
   .logo {
     height: 60px;
     will-change: filter;
